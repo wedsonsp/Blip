@@ -1,0 +1,6 @@
+@Blip_HostAddress = http://localhost:5205
+
+GET {{Blip_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
