@@ -5,9 +5,9 @@ EXPOSE 80
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["Blip/Blip.csproj", "Blip/"]
-RUN dotnet restore "Desafio/Desafio.csproj"
+RUN dotnet restore "Blip/Blip.csproj"
 COPY . .
-WORKDIR "/src/Desafio"
+WORKDIR "/src/Blip"
 RUN dotnet build "Blip.csproj" -c Release -o /app/build
 
 FROM build AS publish
