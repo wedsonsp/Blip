@@ -1,21 +1,21 @@
-# Usar imagem base do .NET SDK
+# Etapa de construção
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-WORKDIR /src
+WORKDIR /app
 
-# Copiar o arquivo .csproj para dentro do contêiner
-COPY ["Blip/Blip.csproj", "Blip/"]
+# Copiar o arquivo .csproj para o contêiner
+COPY Blip.csproj ./
 
-# Restaurar as dependências do projeto
-RUN dotnet restore "Blip/Blip.csproj"
+# Restaurar as dependências
+RUN dotnet restore
 
-# Copiar o restante do código
-COPY . .
+# Copiar o restante dos arquivos do projeto
+COPY . ./
 
 # Construir o projeto
-RUN dotnet build "Blip/Blip.csproj" -c Release -o /app/build
+RUN dotnet build -c Release
 
 # Publicar o projeto
-RUN dotnet publish "Blip/Blip.csproj" -c Release -o /app/publish
+RUN dotnet publish -c Release -o /app/publish
 
-# Definir ponto de entrada para o contêiner
+# Definir o ponto de entrada
 ENTRYPOINT ["dotnet", "/app/publish/Blip.dll"]
