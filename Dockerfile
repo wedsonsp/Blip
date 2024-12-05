@@ -1,5 +1,5 @@
 # Etapa de construção
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 # Copiar o arquivo .csproj para o contêiner
