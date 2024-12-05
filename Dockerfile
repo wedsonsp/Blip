@@ -1,26 +1,21 @@
-# Etapa de construção
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-
-# Defina o diretório de trabalho dentro do contêiner
+# Usar imagem base do .NET SDK
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 
-# Copie o arquivo .csproj para o contêiner
-COPY ["C:/Users/gabri/source/repos/Blip/Blip.csproj", "/src/Blip/"]
+# Copiar o arquivo .csproj para dentro do contêiner
+COPY ["Blip/Blip.csproj", "Blip/"]
 
-# Restaurar as dependências
-RUN dotnet restore "/src/Blip/Blip.csproj"
+# Restaurar as dependências do projeto
+RUN dotnet restore "Blip/Blip.csproj"
 
-# Copiar o restante dos arquivos do projeto para o contêiner
-COPY C:/Users/gabri/source/repos/Blip /src
+# Copiar o restante do código
+COPY . .
 
 # Construir o projeto
-RUN dotnet build "/src/Blip/Blip.csproj" -c Release -o /app/build
+RUN dotnet build "Blip/Blip.csproj" -c Release -o /app/build
 
-# Publicar o projeto (gerando os arquivos para produção)
-RUN dotnet publish "/src/Blip/Blip.csproj" -c Release -o /app/publish
+# Publicar o projeto
+RUN dotnet publish "Blip/Blip.csproj" -c Release -o /app/publish
 
-# Expor a porta usada pela aplicação web (se necessário)
-EXPOSE 80
-
-# Definir o ponto de entrada para rodar a aplicação web
+# Definir ponto de entrada para o contêiner
 ENTRYPOINT ["dotnet", "/app/publish/Blip.dll"]
