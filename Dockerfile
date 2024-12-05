@@ -2,8 +2,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 
-# Copie o arquivo .csproj para o contêiner
-COPY ["Blip/Blip.csproj", "Blip/"]
+# Copiar o arquivo .csproj para o contêiner
+COPY ["Blip.csproj", "Blip/"]
 
 # Restaurar as dependências
 RUN dotnet restore "Blip/Blip.csproj"
