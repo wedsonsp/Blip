@@ -1,19 +1,21 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-WORKDIR /app
-EXPOSE 80
-
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# Etapa de construção
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["Blip.csproj", "Blip/"]
-RUN dotnet restore "Blip.csproj"
+
+# Copie o arquivo .csproj para o contêiner
+COPY ["Blip/Blip.csproj", "Blip/"]
+
+# Restaurar as dependências
+RUN dotnet restore "Blip/Blip.csproj"
+
+# Copiar o restante dos arquivos do projeto
 COPY . .
-WORKDIR "/src/Blip"
-RUN dotnet build "Blip.csproj" -c Release -o /app/build
 
-FROM build AS publish
-RUN dotnet publish "Blip.csproj" -c Release -o /app/publish
+# Construir o projeto
+RUN dotnet build "Blip/Blip.csproj" -c Release -o /app/build
 
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Blip.dll"]
+# Publicar o projeto
+RUN dotnet publish "Blip/Blip.csproj" -c Release -o /app/publish
+
+# Definir o ponto de entrada
+ENTRYPOINT ["dotnet", "/app/publish/Blip.dll"]
