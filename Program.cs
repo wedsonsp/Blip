@@ -14,49 +14,39 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Registre os serviços no DI
-
-// Registra o repositório GitHubRepository para ser injetado onde for necessário
 // Configuração do HttpClient para o repositório
 builder.Services.AddHttpClient<IGitHubRepository, GitHubRepository>()
     .ConfigureHttpClient(client =>
     {
-        // Configuração adicional do HttpClient, caso necessário
-        client.DefaultRequestHeaders.Add("User-Agent", "BlipApp");  // Exemplo de configuração
+        client.DefaultRequestHeaders.Add("User-Agent", "BlipApp");
     });
 
 // Registra o serviço RepositoryService
 builder.Services.AddScoped<RepositoryService>();
 
-// Adiciona suporte para controllers e views (caso precise de views no futuro)
-builder.Services.AddControllersWithViews();
-
-// Adiciona suporte para controllers (para APIs)
+// Adiciona suporte para controllers
 builder.Services.AddControllers();
 
-// Configuração do Swagger (para documentar a API)
+// Configuração do Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configura o pipeline de requisição HTTP
+// Middleware para redirecionamento HTTPS
+app.UseHttpsRedirection();
 
-// Ativa o Swagger para documentar a API
+// Habilita o CORS
+app.UseCors("AllowAll");
+
+// Habilita o uso de autorização
+app.UseAuthorization();
+
+// Mapeia os controllers
+app.MapControllers();
+
+// Ativa o Swagger
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Middleware para redirecionamento HTTPS (garante que todas as requisições vão para HTTPS)
-app.UseHttpsRedirection();
-
-// Habilita o CORS (caso necessário para aplicações em front-end separadas)
-app.UseCors("AllowAll");
-
-// Habilita o uso de autorização (caso esteja utilizando autenticação, adicione o middleware de autenticação)
-app.UseAuthorization();
-
-// Mapeia os controllers, isso é necessário para APIs
-app.MapControllers();
-
-// Inicia a aplicação
 app.Run();

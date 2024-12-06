@@ -26,11 +26,13 @@ namespace Blip.Controllers
         {
             try
             {
+                // Obtém os repositórios do serviço
                 var repositories = await _repositoryService.GetSortedRepositoriesAsync(userName);
                 return Ok(repositories);  // Retorna os repositórios com status 200
             }
             catch (Exception ex)
             {
+                // Log de erro com o detalhe da exceção
                 _logger.LogError(ex, "Erro ao tentar obter os repositórios do GitHub.");
                 return StatusCode(500, new { Message = "Erro ao tentar acessar os repositórios do GitHub", Detail = ex.Message });
             }

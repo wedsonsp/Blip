@@ -1,11 +1,11 @@
 ﻿using Blip.Models;
 using Blip.Repositories.Interfaces;
-using System.Text.Json;
-using System.Net.Http.Headers;
-using System.Linq;
-using System.Threading.Tasks;
+using System;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
+using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Blip.Repositories
 {
@@ -18,8 +18,6 @@ namespace Blip.Repositories
         {
             _httpClient = httpClient;
             _logger = logger;
-            // Configura o User-Agent uma vez para todas as requisições
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "CSharpApp");
         }
 
         public async Task<List<Repositorio>> GetRepositoriesByUserAsync(string userName)
@@ -33,17 +31,21 @@ namespace Blip.Repositories
                 while (hasNextPage)
                 {
                     var url = $"https://api.github.com/users/{userName}/repos?page={page}&per_page=100";
+
+                    // Log da URL sendo acessada
+                    _logger.LogInformation($"Requisitando repositórios para o usuário {userName} - Página {page} - URL: {url}");
+
                     var response = await _httpClient.GetAsync(url);
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        _logger.LogError($"Erro ao acessar o GitHub: {response.StatusCode} - {response.ReasonPhrase}");
-                        throw new Exception($"Erro ao acessar a API do GitHub: {response.StatusCode}");
+                        _logger.LogError($"Erro ao acessar a API do GitHub: {response.StatusCode} - {response.ReasonPhrase}");
+                        throw new Exception($"Erro ao acessar a API do GitHub: {response.StatusCode} - {response.ReasonPhrase}");
                     }
 
                     var responseContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation($"Resposta da API GitHub (primeiros 200 caracteres): {responseContent.Substring(0, Math.Min(200, responseContent.Length))}");
 
-                    // Deserializar a resposta JSON para uma lista de repositórios
                     var pageRepositories = JsonSerializer.Deserialize<List<Repositorio>>(responseContent);
 
                     if (pageRepositories != null)
@@ -51,12 +53,10 @@ namespace Blip.Repositories
                         repositories.AddRange(pageRepositories);
                     }
 
-                    // Lê o cabeçalho de link para saber se há mais páginas
                     var linkHeader = response.Headers.TryGetValues("Link", out var linkValues)
                         ? linkValues.FirstOrDefault()
                         : null;
 
-                    // Se houver uma próxima página
                     if (linkHeader != null && linkHeader.Contains("rel=\"next\""))
                     {
                         page++;
@@ -69,8 +69,8 @@ namespace Blip.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao buscar repositórios do GitHub.");
-                throw new Exception("Erro ao obter repositórios do GitHub.", ex);
+                _logger.LogError(ex, "Erro ao tentar acessar os repositórios do GitHub.");
+                throw new Exception("Erro ao tentar acessar os repositórios do GitHub.", ex);
             }
 
             return repositories;
