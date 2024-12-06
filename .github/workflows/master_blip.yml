@@ -53,4 +53,4 @@ jobs:
           app-name: 'blip'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_62A2B8FA527A4FBB92BD86584E068A96 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B82A9203B2EA4212B0F727CC5A396EBC }}
