@@ -3,8 +3,6 @@ using Blip.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 // Registre os serviços no DI
 
 // Registra o repositório GitHubRepository para ser injetado onde for necessário
@@ -13,26 +11,30 @@ builder.Services.AddHttpClient<IGitHubRepository, GitHubRepository>();
 // Registra o serviço RepositoryService
 builder.Services.AddScoped<RepositoryService>();
 
+// Adiciona suporte para controllers e views (caso precise de views no futuro)
 builder.Services.AddControllersWithViews();
 
+// Adiciona suporte para controllers (para APIs)
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+// Configuração do Swagger (para documentar a API)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+// Configura o pipeline de requisição HTTP
     app.UseSwagger();
     app.UseSwaggerUI();
-}
 
+// Middleware para redirecionamento HTTPS (garante que todas as requisições vão para HTTPS)
 app.UseHttpsRedirection();
 
+// Habilita o uso de autorização, mas no seu caso não é necessário se não estiver usando autenticação
 app.UseAuthorization();
 
+// Mapeia os controllers, isso é necessário para APIs
 app.MapControllers();
 
+// Inicia a aplicação
 app.Run();
