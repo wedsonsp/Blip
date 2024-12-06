@@ -27,7 +27,7 @@ namespace Blip.Repositories
             bool hasNextPage = true;
 
             // Definir o User-Agent (necessário para chamadas à API do GitHub)
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "BlipApp"); // Ajuste o nome da aplicação conforme necessário.
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "Blip"); // Ajuste o nome da aplicação conforme necessário.
 
             while (hasNextPage)
             {
