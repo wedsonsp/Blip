@@ -6,5 +6,6 @@ namespace Blip.Repositories.Interfaces
     {
         Task<List<Repositorio>> GetRepositoriesByUserAsync(string userName);
 
+
     }
 }

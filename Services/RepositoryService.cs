@@ -37,8 +37,17 @@ public class RepositoryService
         }
         catch (Exception ex)
         {
-            // Caso ocorra algum erro, logue e re-raise a exceção
+            // Logar o erro completo para obter mais informações
+            Console.WriteLine($"Erro ao processar repositórios do GitHub: {ex.Message}");
+            Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+            }
+
+            // Caso ocorra algum erro, re-raise a exceção original
             throw new Exception("Erro ao processar repositórios do GitHub.", ex);
         }
     }
+
 }
