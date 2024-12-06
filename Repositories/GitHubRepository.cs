@@ -5,16 +5,21 @@ using System.Net.Http.Headers;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace Blip.Repositories
 {
     public class GitHubRepository : IGitHubRepository
     {
         private readonly HttpClient _httpClient;
+        private readonly ILogger<GitHubRepository> _logger;
 
-        public GitHubRepository(HttpClient httpClient)
+        public GitHubRepository(HttpClient httpClient, ILogger<GitHubRepository> logger)
         {
             _httpClient = httpClient;
+            _logger = logger;
+            // Configura o User-Agent uma vez para todas as requisições
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "CSharpApp");
         }
 
         public async Task<List<Repositorio>> GetRepositoriesByUserAsync(string userName)
@@ -23,41 +28,49 @@ namespace Blip.Repositories
             int page = 1;
             bool hasNextPage = true;
 
-            // Definir o User-Agent (necessário para chamadas à API do GitHub)
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "CSharpApp");
-
-            while (hasNextPage)
+            try
             {
-                // URL da API pública do GitHub para obter repositórios de um usuário, incluindo a paginação
-                var url = $"https://api.github.com/users/{userName}/repos?page={page}&per_page=100"; // 100 repositórios por página
-
-                // Realizando a requisição HTTP para buscar os repositórios
-                var response = await _httpClient.GetStringAsync(url);
-
-                // Deserializar a resposta JSON para uma lista de repositórios
-                var pageRepositories = JsonSerializer.Deserialize<List<Repositorio>>(response);
-
-                // Adicionando os repositórios da página à lista principal
-                if (pageRepositories != null)
+                while (hasNextPage)
                 {
-                    repositories.AddRange(pageRepositories);
-                }
+                    var url = $"https://api.github.com/users/{userName}/repos?page={page}&per_page=100";
+                    var response = await _httpClient.GetAsync(url);
 
-                // Verifica se existe uma próxima página. O GitHub inclui um cabeçalho "Link" com informações de paginação.
-                var linkHeader = _httpClient.DefaultRequestHeaders.TryGetValues("Link", out var linkValues)
-                    ? linkValues.FirstOrDefault()
-                    : null;
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        _logger.LogError($"Erro ao acessar o GitHub: {response.StatusCode} - {response.ReasonPhrase}");
+                        throw new Exception($"Erro ao acessar a API do GitHub: {response.StatusCode}");
+                    }
 
-                if (linkHeader != null && linkHeader.Contains("rel=\"next\""))
-                {
-                    // Se o cabeçalho Link contiver "rel=\"next\"", há mais páginas para buscar
-                    page++;
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
+                    // Deserializar a resposta JSON para uma lista de repositórios
+                    var pageRepositories = JsonSerializer.Deserialize<List<Repositorio>>(responseContent);
+
+                    if (pageRepositories != null)
+                    {
+                        repositories.AddRange(pageRepositories);
+                    }
+
+                    // Lê o cabeçalho de link para saber se há mais páginas
+                    var linkHeader = response.Headers.TryGetValues("Link", out var linkValues)
+                        ? linkValues.FirstOrDefault()
+                        : null;
+
+                    // Se houver uma próxima página
+                    if (linkHeader != null && linkHeader.Contains("rel=\"next\""))
+                    {
+                        page++;
+                    }
+                    else
+                    {
+                        hasNextPage = false;
+                    }
                 }
-                else
-                {
-                    // Caso contrário, não há mais páginas
-                    hasNextPage = false;
-                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar repositórios do GitHub.");
+                throw new Exception("Erro ao obter repositórios do GitHub.", ex);
             }
 
             return repositories;
